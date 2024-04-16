@@ -1,29 +1,64 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue'
+import { HubConnectionBuilder } from '@microsoft/signalr'
 
+const updates = ref<string[]>([])
 
-const addTaskStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle');
-const lastTaskIdAdded = ref<string>('');
+const connection = new HubConnectionBuilder().withUrl('https://localhost:7138/task-hub').build()
+
+connection.on('ReceiveMessage', (message: string) => {
+  updates.value = [...updates.value, message]
+})
+
+connection.onreconnecting(() => {
+  console.log('Connection reconnecting')
+})
+
+connection.onreconnected(() => {
+  console.log('Connection reconnected')
+})
+
+connection.onclose(() => {
+  console.log('Connection closed')
+})
+
+onMounted(() => {
+  try {
+    connection.start()
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+onUnmounted(() => {
+  try {
+    connection.stop()
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+const addTaskStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
+const lastTaskIdAdded = ref<string>('')
 
 async function addTask() {
   try {
-    addTaskStatus.value = 'pending';
-    const result = await fetch('https://localhost:7138/add-task', { method: 'POST' });
+    addTaskStatus.value = 'pending'
+    const result = await fetch('https://localhost:7138/add-task', { method: 'POST' })
 
     if (result.ok === false) {
-      addTaskStatus.value = 'error';
-      return;
+      addTaskStatus.value = 'error'
+      return
     }
 
-    const body = await result.json();
+    const body = await result.json()
 
-    lastTaskIdAdded.value = body.id;
-    addTaskStatus.value = 'success';
+    lastTaskIdAdded.value = body.id
+    addTaskStatus.value = 'success'
   } catch (error) {
-    addTaskStatus.value = 'error';
+    addTaskStatus.value = 'error'
   }
 }
-
 </script>
 
 <template>
@@ -37,6 +72,12 @@ async function addTask() {
         <div v-else>Click the button to add a task</div>
       </Transition>
     </div>
+    <div class="updates-container">
+      <h2>Updates</h2>
+      <ul>
+        <li v-for="(update, index) in updates" :key="index">{{ update }}</li>
+      </ul>
+    </div>
   </main>
 </template>
 
@@ -45,6 +86,7 @@ main {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -52,6 +94,12 @@ main {
 .add-task-container {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.updates-container {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 </style>
