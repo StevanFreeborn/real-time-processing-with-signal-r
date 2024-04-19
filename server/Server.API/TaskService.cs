@@ -18,14 +18,16 @@ class TaskService(
 
       _ = Task.Run(async () =>
       {
+        var startingUpdate = new { task.Id, Status = "Starting" };
         Console.WriteLine($"Task {task.Id} is starting");
-        await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is starting", cancellationToken: stoppingToken);
+        await _taskHub.Clients.All.SendAsync("ReceiveMessage", startingUpdate, cancellationToken: stoppingToken);
 
         var randomNumberOfSeconds = new Random().Next(5, 30);
         await Task.Delay(TimeSpan.FromSeconds(randomNumberOfSeconds), stoppingToken);
 
-        Console.WriteLine($"Task {task.Id} is complete");
-        await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is completed in {randomNumberOfSeconds}", cancellationToken: stoppingToken);
+        var finishedUpdate = new { task.Id, Status = $"Completed ({randomNumberOfSeconds})" };
+        Console.WriteLine($"Task {task.Id} is completed in {randomNumberOfSeconds}");
+        await _taskHub.Clients.All.SendAsync("ReceiveMessage", finishedUpdate, cancellationToken: stoppingToken);
       }, stoppingToken);
     }
   }

@@ -2,12 +2,26 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { HubConnectionBuilder } from '@microsoft/signalr'
 
-const updates = ref<string[]>([])
+type Update = {
+  id: string
+  status: string
+}
+
+const updates = ref<Update[]>([])
 
 const connection = new HubConnectionBuilder().withUrl('https://localhost:7138/task-hub').build()
 
-connection.on('ReceiveMessage', (message: string) => {
-  updates.value = [...updates.value, message]
+connection.on('ReceiveMessage', (newUpdate: Update) => {
+  const existingUpdate = updates.value.find((update) => update.id === newUpdate.id)
+
+  if (existingUpdate === undefined) {
+    updates.value = [...updates.value, newUpdate]
+    return
+  }
+
+  existingUpdate.status = newUpdate.status
+
+  updates.value = [...updates.value]
 })
 
 onMounted(() => {
@@ -63,7 +77,7 @@ async function addTask() {
     <div class="updates-container">
       <h2>Updates</h2>
       <ul>
-        <li v-for="(update, index) in updates" :key="index">{{ update }}</li>
+        <li v-for="update in updates" :key="update.id">{{ update.id }}: {{ update.status }}</li>
       </ul>
     </div>
   </main>
