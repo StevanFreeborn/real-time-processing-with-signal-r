@@ -10,18 +10,6 @@ connection.on('ReceiveMessage', (message: string) => {
   updates.value = [...updates.value, message]
 })
 
-connection.onreconnecting(() => {
-  console.log('Connection reconnecting')
-})
-
-connection.onreconnected(() => {
-  console.log('Connection reconnected')
-})
-
-connection.onclose(() => {
-  console.log('Connection closed')
-})
-
 onMounted(() => {
   try {
     connection.start()
@@ -87,7 +75,6 @@ main {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 }
 
