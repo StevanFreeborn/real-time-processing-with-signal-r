@@ -50,8 +50,7 @@ app
   })
   .WithName("AddTask")
   .WithDisplayName("Add Task")
-  .WithDescription("Add a new task to the queue")
-  .WithOpenApi();
+  .WithDescription("Add a new task to the queue");
 
 app.MapHub<TaskHub>("/task-hub");
 

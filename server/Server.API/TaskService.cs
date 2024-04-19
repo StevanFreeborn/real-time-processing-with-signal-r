@@ -16,14 +16,17 @@ class TaskService(
     {
       var task = await _taskQueue.DequeueAsync(stoppingToken);
 
-      // Execute the task
-      Console.WriteLine($"Task {task.Id} is starting");
-      await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is starting", cancellationToken: stoppingToken);
+      _ = Task.Run(async () =>
+      {
+        Console.WriteLine($"Task {task.Id} is starting");
+        await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is starting", cancellationToken: stoppingToken);
 
-      await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        var randomNumberOfSeconds = new Random().Next(5, 30);
+        await Task.Delay(TimeSpan.FromSeconds(randomNumberOfSeconds), stoppingToken);
 
-      Console.WriteLine($"Task {task.Id} is complete");
-      await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is complete", cancellationToken: stoppingToken);
+        Console.WriteLine($"Task {task.Id} is complete");
+        await _taskHub.Clients.All.SendAsync("ReceiveMessage", $"Task {task.Id} is completed in {randomNumberOfSeconds}", cancellationToken: stoppingToken);
+      }, stoppingToken);
     }
   }
 }
