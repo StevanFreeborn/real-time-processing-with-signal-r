@@ -25,7 +25,7 @@ class TaskService(
         var randomNumberOfSeconds = new Random().Next(5, 30);
         await Task.Delay(TimeSpan.FromSeconds(randomNumberOfSeconds), stoppingToken);
 
-        var finishedUpdate = new { task.Id, Status = $"Completed ({randomNumberOfSeconds})" };
+        var finishedUpdate = new { task.Id, Status = $"Completed ({randomNumberOfSeconds} secs)" };
         Console.WriteLine($"Task {task.Id} is completed in {randomNumberOfSeconds}");
         await _taskHub.Clients.All.SendAsync("ReceiveMessage", finishedUpdate, cancellationToken: stoppingToken);
       }, stoppingToken);
