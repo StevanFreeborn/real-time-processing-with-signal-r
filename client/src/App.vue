@@ -9,7 +9,9 @@ type Update = {
 
 const updates = ref<Update[]>([])
 
-const connection = new HubConnectionBuilder().withUrl('https://localhost:7138/task-hub').build()
+const connection = new HubConnectionBuilder()
+  .withUrl('https://localhost:7138/task-hub', { withCredentials: false })
+  .build()
 
 connection.on('ReceiveMessage', (newUpdate: Update) => {
   const existingUpdate = updates.value.find((update) => update.id === newUpdate.id)
